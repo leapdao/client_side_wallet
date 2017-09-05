@@ -1,0 +1,21 @@
+{
+  "name": "client_side_wallet",
+  "version": "0.9.0",
+  "description": "script to use client wallet",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "ethereum",
+    "web3"
+  ],
+  "author": "johann barbie (johannbarbie@me.com)",
+  "license": "ISC",
+  "dependencies": {
+    "bip39": "^2.2.0",
+    "ethereumjs-wallet": "^0.6.0",
+    "web3": "^0.19.0",
+    "web3-provider-engine": "13.2.9"
+  }
+}

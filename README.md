@@ -5,6 +5,12 @@
 npm install
 ```
 
+Customize variables in `.env` if needed:
+
+```
+cp .env.template .env
+```
+
 ## script setup
 
 In CLI
@@ -30,4 +36,4 @@ provider.getAddress()
 
 ## netting dry-run script
 
-Change the table address in netting.js and run `npm start netting.js`
+`npm start netting <table address>`

@@ -1,6 +1,7 @@
+import 'dotenv/config';
+
 let Web3 = require('web3');
 let HDWalletProvider = require(".");
-let mnemonic = "";
-let provider = new HDWalletProvider(mnemonic, "https://mainnet.infura.io:443", 1);
+let provider = new HDWalletProvider(process.env.MNEMONIC || "", "https://mainnet.infura.io:443", process.env.ACCOUNT_INDEX || 0);
 
 export default new Web3(provider.engine);

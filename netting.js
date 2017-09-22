@@ -53,7 +53,7 @@ async function run(tableAddress) {
 }
 
 if (!process.argv[2]) {
-  console.log('Usage: npm start netting.js <tableAddress>');
+  console.log('Usage: npm start netting <tableAddress>');
   process.exit(0);
 }
 run(process.argv[2]);

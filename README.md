@@ -27,3 +27,7 @@ provider.getAddress()
 => '0x6ede26d58a3f582c808991ce7d15bc8744b0c943'
 ```
 
+
+## netting dry-run script
+
+Change the table address in netting.js and run `npm start netting.js`

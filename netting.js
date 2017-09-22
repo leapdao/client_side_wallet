@@ -36,7 +36,7 @@ async function run() {
   var sumOfSeatBalances = 0;
   for (var j = 0; j < seats.length; j++) {
     console.log(`Seat balance before netting: ${seats[j][1]}`);
-    for (var i = 26; i <= lastNettingRequestHandId; i++ ) {
+    for (var i = lastHandNetted; i <= lastNettingRequestHandId; i++ ) {
       var inp = (await Promise.promisify(table.getIn)(i, seats[j][2])).toNumber();
       var outp = (await Promise.promisify(table.getOut)(i, seats[j][2]))[1].toNumber();
       seats[j][1] = seats[j][1] + outp - inp;

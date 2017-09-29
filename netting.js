@@ -31,7 +31,7 @@ async function run(tableAddress) {
 
     for (var i = lastHandNetted; i <= lastNettingRequestHandId; i++ ) {
       var inp = (await Promise.promisify(table.getIn)(i, seats[j][2])).toNumber();
-      var outp = (await Promise.promisify(table.getOut)(i, seats[j][2]))[1].toNumber();
+      var outp = (await Promise.promisify(table.getOut)(i, seats[j][2]))[0].toNumber();
       console.log(`Hand ${i}. In: ${inp}. Out: ${outp}`);
       seats[j][1] = seats[j][1] + outp - inp;
     }

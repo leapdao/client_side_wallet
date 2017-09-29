@@ -47,3 +47,7 @@ Adjust the balance diffs to settle, LHN and LNRH in settle.js and run
 You will get the settle reciept details.
 
 Remove `estimateGas` from the `table.settle` script so that it send out settle tx to the network
+
+## parse receipt
+
+`npm start receipt <receipt>`

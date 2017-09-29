@@ -37,3 +37,13 @@ provider.getAddress()
 ## netting dry-run script
 
 `npm start netting <table address>`
+
+## settle script
+
+Adjust the balance diffs to settle, LHN and LNRH in settle.js and run
+
+`npm start settle <table address>`
+
+You will get the settle reciept details.
+
+Remove `estimateGas` from the `table.settle` script so that it send out settle tx to the network

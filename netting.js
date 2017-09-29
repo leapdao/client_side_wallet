@@ -1,6 +1,11 @@
 import web3 from './web3';
 import Promise from 'bluebird';
 import { Table, ERC20 } from './contracts';
+import BigNumber from 'bignumber.js';
+
+function toNtz(amountBabz) {
+  return new BigNumber(amountBabz).div(Math.pow(10, 12));
+}
 
 async function run(tableAddress) {
   var table = Table.at(tableAddress);
@@ -25,29 +30,29 @@ async function run(tableAddress) {
   for (var j = 0; j < seats.length; j++) {
     console.log(`\nSeat ${j} -----------`);
     console.log(`Sender: ${seats[j][0]}`);
-    console.log(`Balance before netting: ${seats[j][1]}`);
+    console.log(`Balance before netting: ${toNtz(seats[j][1])}`);
     console.log(`Signer: ${seats[j][2]}`);
     console.log(`Exit hand: ${seats[j][3]}`);
 
     for (var i = lastHandNetted; i <= lastNettingRequestHandId; i++ ) {
       var inp = (await Promise.promisify(table.getIn)(i, seats[j][2])).toNumber();
       var outp = (await Promise.promisify(table.getOut)(i, seats[j][2]))[0].toNumber();
-      console.log(`Hand ${i}. In: ${inp}. Out: ${outp}`);
+      console.log(`Hand ${i}. In: ${toNtz(inp)}. Out: ${toNtz(outp)}`);
       seats[j][1] = seats[j][1] + outp - inp;
     }
-    console.log(`Seat balance after netting: ${seats[j][1]}`);
+    console.log(`Seat balance after netting: ${toNtz(seats[j][1])}`);
     if (seats[j][3] > 0 && lastNettingRequestHandId >= seats[j][3]) {
         if (seats[j][1] > 0) {
-          console.log(`Transfer: ${seats[j][1]} to ${seats[j][0]}`);
+          console.log(`Transfer: ${toNtz(seats[j][1])} to ${seats[j][0]}`);
         }
       }
     sumOfSeatBalances += seats[j][1];
   }
 
-   console.log(`\nSum of the seat balances: ${sumOfSeatBalances}`);
+   console.log(`\nSum of the seat balances: ${toNtz(sumOfSeatBalances)}`);
    var totalBalance = (await Promise.promisify(token.balanceOf)(tableAddress)).toNumber();
-   console.log(`Table balance: ${totalBalance}`);
-   console.log(`Rake: ${totalBalance - sumOfSeatBalances}`);
+   console.log(`Table balance: ${toNtz(totalBalance)}`);
+   console.log(`Rake: ${toNtz(totalBalance - sumOfSeatBalances)}`);
 
    process.exit(0);
 }

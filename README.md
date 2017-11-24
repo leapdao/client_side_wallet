@@ -5,6 +5,12 @@
 npm install
 ```
 
+Customize variables in `.env` if needed:
+
+```
+cp .env.template .env
+```
+
 ## script setup
 
 In CLI
@@ -27,3 +33,21 @@ provider.getAddress()
 => '0x6ede26d58a3f582c808991ce7d15bc8744b0c943'
 ```
 
+
+## netting dry-run script
+
+`npm start netting <table address>`
+
+## settle script
+
+Adjust the balance diffs to settle, LHN and LNRH in settle.js and run
+
+`npm start settle <table address>`
+
+You will get the settle reciept details.
+
+Remove `estimateGas` from the `table.settle` script so that it send out settle tx to the network
+
+## parse receipt
+
+`npm start receipt <receipt>`

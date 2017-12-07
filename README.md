@@ -51,3 +51,7 @@ Remove `estimateGas` from the `table.settle` script so that it send out settle t
 ## parse receipt
 
 `npm start receipt <receipt>`
+
+## submit leave table receipt
+
+`npm start leave.js <table address> <leave receipt>`

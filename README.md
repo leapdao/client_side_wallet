@@ -43,10 +43,6 @@ provider.getAddress()
 To settle the table use
 `npm start settle.js <table addr> <seat 0 payout in NTZ> <seat 1 payout in NTZ>`
 
-You will get the settle reciept details.
-
-Remove `estimateGas` from the `table.settle` script so that it send out settle tx to the network
-
 ## parse receipt
 
 `npm start receipt <receipt>`

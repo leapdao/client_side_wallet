@@ -2,21 +2,12 @@ import web3 from './web3';
 import Promise from 'bluebird';
 import { Table, ERC20 } from './contracts';
 import BigNumber from 'bignumber.js';
-
-function toNtz(amountBabz) {
-  return new BigNumber(amountBabz).div(Math.pow(10, 12));
-}
+import { toNtz, getSeats } from './util';
 
 async function run(tableAddress) {
   var table = Table.at(tableAddress);
   console.log(`Table address: ${tableAddress}`);
-  var seats = [];
-  seats.push(await Promise.promisify(table.seats)(0));
-  seats.push(await Promise.promisify(table.seats)(1));
-  seats[0][1] = (seats[0][1]).toNumber();
-  seats[0][3] = seats[0][3].toNumber();
-  seats[1][1] = seats[1][1].toNumber();
-  seats[1][3] = seats[1][3].toNumber();
+  var seats = await getSeats(table);
 
   var tokenAddress = await Promise.promisify(table.tokenAddr)();
   console.log(`Token address: ${tokenAddress}`);
@@ -34,7 +25,7 @@ async function run(tableAddress) {
     console.log(`Signer: ${seats[j][2]}`);
     console.log(`Exit hand: ${seats[j][3]}`);
 
-    for (var i = lastHandNetted; i <= lastNettingRequestHandId; i++ ) {
+    for (var i = lastHandNetted + 1; i <= lastNettingRequestHandId; i++ ) {
       var inp = (await Promise.promisify(table.getIn)(i, seats[j][2])).toNumber();
       var outp = (await Promise.promisify(table.getOut)(i, seats[j][2]))[0].toNumber();
       console.log(`Hand ${i}. In: ${toNtz(inp)}. Out: ${toNtz(outp)}`);

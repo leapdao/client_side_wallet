@@ -40,9 +40,8 @@ provider.getAddress()
 
 ## settle script
 
-Adjust the balance diffs to settle, LHN and LNRH in settle.js and run
-
-`npm start settle <table address>`
+To settle the table use
+`npm start settle.js <table addr> <seat 0 payout in NTZ> <seat 1 payout in NTZ>`
 
 You will get the settle reciept details.
 

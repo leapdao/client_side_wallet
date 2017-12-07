@@ -28,7 +28,7 @@ async function run(tableAddress, receiptBin) {
   };
 
   table.leave.estimateGas(...params, networkParams, function(err, estimatedGas) {
-    if (estimatedGas >= networkParams.gas) {
+    if (!estimatedGas || estimatedGas >= networkParams.gas) {
       console.log(`Too much gas estimated: ${estimatedGas}`);
       return process.exit(0);
     }

@@ -1,5 +1,6 @@
 import BigNumber from 'bignumber.js';
 import Promise from 'bluebird';
+import readline from 'readline';
 
 export function toNtz(amountBabz) {
   return new BigNumber(amountBabz).div(Math.pow(10, 12));
@@ -18,4 +19,21 @@ export async function getSeats(table) {
   seats[1][1] = seats[1][1].toNumber();
   seats[1][3] = seats[1][3].toNumber();
   return seats;
+}
+
+export function confirmSubmit(callback) {
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+  });
+
+  rl.question('Submit tx (y/N)? ', (answer) => {
+    rl.close();
+    let doSubmit = answer == 'y';
+    if (!doSubmit) {
+      console.log('Bye-bye');
+      return process.exit(0);
+    }
+    callback();
+  });
 }

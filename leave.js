@@ -1,10 +1,9 @@
 import web3 from './web3';
 import Promise from 'bluebird';
-import readline from 'readline';
 import { Receipt } from 'poker-helper';
 import { Table, ERC20 } from './contracts';
 import BigNumber from 'bignumber.js';
-import { fromGwei, toNtz, getSeats } from './util';
+import { fromGwei, toNtz, getSeats, confirmSubmit } from './util';
 
 async function run(tableAddress, receiptBin) {
   var table = Table.at(tableAddress);
@@ -36,18 +35,7 @@ async function run(tableAddress, receiptBin) {
     console.log(`\nNetwork params:\n`);
     console.log(networkParams);
 
-    const rl = readline.createInterface({
-      input: process.stdin,
-      output: process.stdout
-    });
-
-    rl.question('Submit tx (y/N)? ', (answer) => {
-      rl.close();
-      let doSubmit = answer == 'y';
-      if (!doSubmit) {
-        console.log('Bye-bye');
-        return process.exit(0);
-      }
+    confirmSubmit(() => {
       console.log('Submitting tx..');
       table.leave(...params, networkParams, function(err, tx) {
         if (err) {

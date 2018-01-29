@@ -9,10 +9,35 @@ AWS.config = {
   region: 'eu-west-1',
 };
 
-const ffAddr = '0x869bdbb21bf8703353c16e2f3a19f937d14ea7c5';
-const domainName = 'pr-accounts';
-const proxiesDomain = 'pr-proxies';
+// how many blocks to look behind when searching for onchain proxies
+const lookBehindBlocks = 10;
+
+// app configuration. Only public data here. Sensitive data should be set in ENV variables (see .env.template)
+const config = {
+  production: {
+    fishFactory: '0x869bdbb21bf8703353c16e2f3a19f937d14ea7c5',
+    accountsDomain: 'pr-accounts',
+    proxiesDomain: 'pr-proxies',
+    ownerAddress: '0x4b678e549c71e1b15d257a67aac281df5f006f7d',
+    lockAddress: '0xeaaa9055cd3ec255ecad3e3620705a2f99d8d032',
+    oraclePrivKey: process.env.PRODUCTION_ORACLE_PRIV_KEY
+  },
+  staging: {
+    fishFactory: '0x25aeb2d4d069b6e211a21577be8d63a059946503',
+    accountsDomain: 'st-accounts',
+    proxiesDomain: 'st-proxies',
+    ownerAddress: '0xc5a72c0bf9f59ed5a1d2ac9f29bd80c55279d2d3',
+    lockAddress: '0x82e8c6cf42c8d1ff9594b17a3f50e94a12cc860f',
+    oraclePrivKey: process.env.STAGING_ORACLE_PRIV_KEY
+  }
+}
+
 const sdb = new AWS.SimpleDB({ region : 'eu-west-1' });
+
+function etherscanLink(env, txid) {
+  const network = env == 'production' ? 'mainnet' : 'rinkeby';
+  return network == 'rinkeby' ? `https://rinkeby.etherscan.io/tx/${txid}` : `https://etherscan.io/tx/${txid}`;
+}
 
 function getOnchainProxies(fishFactory, fromBlock) {
   const createdAccounts = fishFactory.AccountCreated({}, { fromBlock: fromBlock, toBlock: 'latest'});
@@ -28,7 +53,7 @@ function getOnchainProxies(fishFactory, fromBlock) {
 function getTaken(proxies) {
   return new Promise((resolve, reject) => {
     sdb.select({
-      SelectExpression: "select proxyAddr from `" + domainName + "` where proxyAddr IN ('" + proxies.join("','") + "')"
+      SelectExpression: "select proxyAddr from `" + config[env].accountsDomain + "` where proxyAddr IN ('" + proxies.join("','") + "')"
     }, (err, data) => {
       if (err) return reject(err);
       if (!data || !data.Items) return resolve([]);
@@ -47,7 +72,7 @@ function rejectTaken(proxies) {
 function getAlreadyInPool(proxies) {
   return new Promise((resolve, reject) => {
     sdb.select({
-      SelectExpression: "select ItemName from `" + proxiesDomain + "` where ItemName() IN ('" + proxies.join("','") + "')"
+      SelectExpression: "select ItemName from `" + config[env].proxiesDomain + "` where ItemName() IN ('" + proxies.join("','") + "')"
     }, (err, data) => {
       if (err) return reject(err);
       if (!data || !data.Items) return resolve([]);
@@ -75,8 +100,8 @@ function addToThePool(proxies) {
          ]
        };
     });
-    var params = {
-      DomainName: proxiesDomain,
+    const params = {
+      DomainName: config[env].proxiesDomain,
       Items: proxiesAttrItems
     };
     sdb.batchPutAttributes(params, function(err, data) {
@@ -90,18 +115,29 @@ function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-async function createProxies(ff, count=1, gasPrice=1) {
+async function createProxies(ff, count=1, gasPrice=10) {
+  if (count == 0) return;
+  console.log(`Creating ${count} proxies..`);
+
   const from = (await Promise.promisify(web3.eth.getAccounts)())[0];
 
   const nonce = await Promise.promisify(web3.eth.getTransactionCount)(from);
 
   function create(nonce) {
-    ff.create('0x4b678e549c71e1b15d257a67aac281df5f006f7d', '0xeaaa9055cd3ec255ecad3e3620705a2f99d8d032', {
+    console.log(config[env].ownerAddress);
+    console.log(config[env].lockAddress);
+    console.log({
       from: from,
       gas: 500000,
       gasPrice: fromGwei(gasPrice),
       nonce: nonce
-    }, function(e,a){ console.log(e); console.log(`https://etherscan.io/tx/${a}`); });
+    });
+    ff.create(config[env].ownerAddress, config[env].lockAddress, {
+      from: from,
+      gas: 500000,
+      gasPrice: fromGwei(gasPrice),
+      nonce: nonce
+    }, function(e,a){ console.log(e); console.log(etherscanLink(a)); });
   }
 
   for (let i = nonce; i < nonce + count; i++) {
@@ -111,6 +147,7 @@ async function createProxies(ff, count=1, gasPrice=1) {
 }
 
 async function run(numberOfProxies, gasPrice) {
+  console.log(`Env: ${env}`);
   if (numberOfProxies) {
     numberOfProxies = parseInt(numberOfProxies);
   }
@@ -119,15 +156,16 @@ async function run(numberOfProxies, gasPrice) {
     gasPrice = parseInt(gasPrice);
   }
 
-  const ff = FishFactory.at(ffAddr);
+  const ff = FishFactory.at(config[env].fishFactory);
+  console.log(ff);
 
-  const blockToScanFrom = (await Promise.promisify(web3.eth.getBlockNumber)()) - 10;
+  const blockToScanFrom = (await Promise.promisify(web3.eth.getBlockNumber)()) - lookBehindBlocks;
 
   await createProxies(ff, numberOfProxies, gasPrice);
 
   while (true) {
     await sleep(10000);
-    console.log('Looking for new proxies mined..');
+    console.log('Looking for unused proxies on the chain..');
     const newProxies = await getOnchainProxies(ff, blockToScanFrom)
       .then(rejectTaken)
       .then(rejectAlreadyInPool);
@@ -144,8 +182,10 @@ async function run(numberOfProxies, gasPrice) {
 }
 
 if (!process.argv[2]) {
-  console.log('Usage: npm start farmProxies <count to farm> [<gas price>]');
+  console.log('Usage: npm start farmProxies <environment> <count to farm> [<gas price>]\n\nExample: npm start farmProxies staging 5 1');
   process.exit(0);
 }
 
-run(process.argv[2], process.argv[3]);
+const env = process.argv[2];
+
+run(process.argv[3], process.argv[4]);

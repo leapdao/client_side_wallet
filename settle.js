@@ -23,7 +23,7 @@ async function run(tableAddress, seat0balanceNtz, seat1balanceNtz) {
   console.log(`lastHandNetted: ${lastHandNetted}`);
   console.log(`lastNettingRequestHandId: ${lastNettingRequestHandId}`);
 
-  const oraclePrivKey = process.env.ORACLE_PRIV_KEY;
+  const oraclePrivKey = process.env.PRODUCTION_ORACLE_PRIV_KEY;
   const seats = await getSeats(table);
   const seat0pay = ntzBabz.mul(seat0balanceNtz);
   const seat1pay = ntzBabz.mul(seat1balanceNtz);

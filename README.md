@@ -43,6 +43,10 @@ provider.getAddress()
 To settle the table use
 `npm start settle.js <table addr> <seat 0 payout in NTZ> <seat 1 payout in NTZ>`
 
+## farm more fish proxies
+
+`npm start farmProxies <number of proxies to farm> [<gas price in gwei>]`
+
 ## parse receipt
 
 `npm start receipt <receipt>`
